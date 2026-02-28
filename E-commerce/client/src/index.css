@@ -1,5 +1,116 @@
 @import "tailwindcss";
 
+/* ===== GLOBAL VARIABLES ===== */
+/* :root {
+  --black: #0a0a0a;
+  --white: #fafaf9;
+  --offwhite: #f4f1ec;
+  --accent: #e63946;
+  --muted: #8a8580;
+  --border: rgba(10,10,10,0.09);
+  --border2: rgba(10,10,10,0.18);
+  --ease: cubic-bezier(0.4,0,0.2,1);
+}
+
+body {
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+  background: var(--white);
+  color: var(--black);
+}
+
+.product-card {
+  cursor: pointer;
+}
+
+.product-card-img {
+  position: relative;
+  aspect-ratio: 3/4;
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.product-card-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  transform: translateY(100%);
+  transition: transform 0.3s var(--ease);
+}
+
+.product-card:hover .product-card-actions {
+  transform: translateY(0);
+}
+
+.btn-add-cart {
+  flex: 1;
+  background: var(--black);
+  color: var(--white);
+  padding: 0.65rem 1rem;
+  border-radius: 999px;
+  font-size: 0.825rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-wishlist {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.btn-wishlist.liked {
+  color: var(--accent);
+}
+
+.product-name {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.product-brand {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.product-price {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.price-current {
+  font-weight: 600;
+}
+
+.price-old {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.price-discount {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.product-rating {
+  font-size: 0.8rem;
+  margin-top: 0.3rem;
+}
+
+.stars {
+  color: #f59e0b;
+} */
 /* :root {
 
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

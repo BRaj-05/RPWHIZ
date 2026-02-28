@@ -8,6 +8,7 @@ import ProductDetails from "./components/product/ProductDetails";
 import CartDrawer from "./components/cart/CartDrawer";
 import AuthModal from "./components/auth/AuthModal";
 import AdminDashboard from "./components/admin/AdminDashboard";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -19,11 +20,15 @@ function App() {
       openCart={() => setIsCartOpen(true)}
       openAuth={() => setIsAuthOpen(true)}
     />
-
+{/* admin route */}
       <Routes>
         <Route
         path="/admin"
-        element={<AdminDashboard />}
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
       />
         <Route
           path="/"

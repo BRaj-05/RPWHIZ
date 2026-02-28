@@ -3,13 +3,28 @@ import { createContext, useState } from "react";
 export const StoreContext = createContext();
 
 export const StoreProvider = ({ children }) => {
-  const [sortOption, setSortOption] = useState("default");  
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState("default");
 
-  // CART LOGIC
+  const [user, setUser] = useState(null);
+
+  // Fake login
+  const login = (email) => {
+    if (email === "admin@shopora.com") {
+      setUser({ email, role: "admin" });
+    } else {
+      setUser({ email, role: "customer" });
+    }
+  };
+
+  const logout = () => {
+    setUser(null);
+  };
+
+  // CART
   const addToCart = (product) => {
     const existing = cart.find(
       (item) => item._id === product._id
@@ -27,10 +42,7 @@ export const StoreProvider = ({ children }) => {
         )
       );
     } else {
-      setCart([
-        ...cart,
-        { ...product, quantity: 1 },
-      ]);
+      setCart([...cart, { ...product, quantity: 1 }]);
     }
   };
 
@@ -54,7 +66,6 @@ export const StoreProvider = ({ children }) => {
     );
   };
 
-  // WISHLIST
   const toggleWishlist = (product) => {
     const exists = wishlist.find(
       (item) => item._id === product._id
@@ -74,18 +85,21 @@ export const StoreProvider = ({ children }) => {
   return (
     <StoreContext.Provider
       value={{
-        sortOption,
-        setSortOption,
         cart,
         wishlist,
+        selectedCategory,
+        searchQuery,
+        sortOption,
+        user,
+        login,
+        logout,
         addToCart,
         removeFromCart,
         updateQuantity,
         toggleWishlist,
-        selectedCategory,
         setSelectedCategory,
-        searchQuery,
         setSearchQuery,
+        setSortOption,
       }}
     >
       {children}

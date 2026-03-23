@@ -2,6 +2,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useContext } from "react";
 import { StoreContext } from "../../context/StoreContext";
 
+/* -------------------------------------------------------
+   AUTH MODAL
+-------------------------------------------------------- */
 export default function AuthModal({ isOpen, setIsOpen }) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -12,8 +15,8 @@ export default function AuthModal({ isOpen, setIsOpen }) {
   const handleSubmit = () => {
     if (!email || !password) return;
 
-    login(email);        // 🔥 connect to context
-    setIsOpen(false);    // close modal
+    login(email);
+    setIsOpen(false);
     setEmail("");
     setPassword("");
   };
@@ -22,62 +25,65 @@ export default function AuthModal({ isOpen, setIsOpen }) {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
+            animate={{ opacity: 0.45 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black z-40"
+            className="fixed inset-0 z-40 bg-black"
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Modal */}
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.92, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 flex items-center justify-center z-50"
+            exit={{ scale: 0.92, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-white p-8 rounded-2xl w-[350px] shadow-2xl">
-              <h2 className="text-xl font-semibold mb-6">
-                {isLogin ? "Welcome Back" : "Create Account"}
-              </h2>
+            <div className="w-full max-w-md overflow-hidden rounded-[2rem] bg-[var(--surface-strong)] shadow-[0_30px_80px_rgba(0,0,0,0.18)]">
+              <div className="bg-gradient-to-r from-black to-zinc-900 p-6 text-white">
+                <p className="text-xs uppercase tracking-[0.3em] text-red-400">
+                  Welcome to Shopora
+                </p>
+                <h2 className="mt-3 text-2xl font-semibold">
+                  {isLogin ? "Sign in to continue" : "Create your account"}
+                </h2>
+              </div>
 
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full mb-3 px-4 py-2 border rounded"
-              />
+              <div className="p-6">
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="mb-3 w-full rounded-full border border-[var(--line)] bg-transparent px-4 py-3 text-sm outline-none"
+                />
 
-              <input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full mb-4 px-4 py-2 border rounded"
-              />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mb-5 w-full rounded-full border border-[var(--line)] bg-transparent px-4 py-3 text-sm outline-none"
+                />
 
-              <button
-                onClick={handleSubmit}
-                className="w-full bg-black text-white py-2 rounded hover:bg-red-500 transition"
-              >
-                {isLogin ? "Login" : "Register"}
-              </button>
-
-              <p className="text-sm mt-4 text-center">
-                {isLogin
-                  ? "No account?"
-                  : "Already registered?"}{" "}
                 <button
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-red-500"
+                  onClick={handleSubmit}
+                  className="w-full rounded-full bg-[var(--button-bg)] py-3.5 text-sm font-semibold text-[var(--button-text)] transition hover:bg-red-500 hover:text-white"
                 >
-                  {isLogin ? "Sign up" : "Login"}
+                  {isLogin ? "Login" : "Register"}
                 </button>
-              </p>
+
+                <p className="mt-5 text-center text-sm text-[var(--muted)]">
+                  {isLogin ? "No account yet?" : "Already registered?"}{" "}
+                  <button
+                    onClick={() => setIsLogin(!isLogin)}
+                    className="font-semibold text-red-500"
+                  >
+                    {isLogin ? "Create one" : "Login"}
+                  </button>
+                </p>
+              </div>
             </div>
           </motion.div>
         </>

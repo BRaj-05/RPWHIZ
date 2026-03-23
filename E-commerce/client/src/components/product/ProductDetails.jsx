@@ -3,81 +3,96 @@ import { products } from "../../data/products";
 import { useContext } from "react";
 import { StoreContext } from "../../context/StoreContext";
 
+/* -------------------------------------------------------
+   PRODUCT DETAILS
+-------------------------------------------------------- */
 export default function ProductDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useContext(StoreContext);
 
-  const product = products.find(
-    (p) => p._id === id
-  );
+  const product = products.find((p) => p._id === id);
 
   if (!product) {
     return (
-      <div className="p-10 text-center">
+      <div className="px-6 py-20 text-center text-[var(--muted)]">
         Product not found
       </div>
     );
   }
 
   const discount = product.compareAtPrice
-    ? Math.round(
-        (1 - product.price / product.compareAtPrice) * 100
-      )
+    ? Math.round((1 - product.price / product.compareAtPrice) * 100)
     : 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-8 py-16 grid md:grid-cols-2 gap-16">
-
-      {/* LEFT SIDE */}
-      <div className="bg-gray-100 rounded-3xl flex items-center justify-center text-8xl">
-        {product.emoji}
-      </div>
-
-      {/* RIGHT SIDE */}
-      <div>
-        <button
-          onClick={() => navigate(-1)}
-          className="text-sm text-gray-500 mb-4"
-        >
-          ← Back
-        </button>
-
-        <h1 className="text-3xl font-semibold mb-3">
-          {product.name}
-        </h1>
-
-        <p className="text-gray-500 mb-4">
-          {product.brand}
-        </p>
-
-        <div className="flex items-center gap-3 mb-4">
-          <span className="text-2xl font-bold">
-            ₹{product.price}
-          </span>
-
-          {product.compareAtPrice && (
-            <>
-              <span className="text-gray-400 line-through">
-                ₹{product.compareAtPrice}
-              </span>
-              <span className="text-red-500 text-sm">
-                -{discount}%
-              </span>
-            </>
-          )}
+    <div className="px-4 sm:px-6 lg:px-8 py-10">
+      <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-2">
+        <div className="overflow-hidden rounded-[2rem] border border-[var(--line)] bg-gradient-to-br from-[#f8f4ef] via-white to-[#f2ece6] p-8 sm:p-12 flex items-center justify-center min-h-[520px]">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full max-h-[420px] rounded-[2rem] object-cover shadow-[0_20px_60px_rgba(16,16,16,0.10)]"
+          />
         </div>
 
-        <p className="text-sm text-gray-500 mb-6">
-          ⭐ {product.rating} ({product.reviews} reviews)
-        </p>
+        <div className="flex flex-col justify-center">
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-5 w-fit text-sm text-[var(--muted)] hover:text-[var(--text)]"
+          >
+            ← Back
+          </button>
 
-        <button
-          onClick={() => addToCart(product)}
-          className="bg-black text-white px-6 py-3 rounded-full hover:bg-red-500 transition"
-        >
-          Add to Cart →
-        </button>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-red-500">
+            {product.category}
+          </p>
+
+          <h1 className="mt-3 text-4xl sm:text-5xl font-semibold tracking-[-0.05em]">
+            {product.name}
+          </h1>
+
+          <p className="mt-3 text-[var(--muted)]">{product.brand}</p>
+
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <span className="text-3xl font-semibold">₹{product.price}</span>
+
+            {product.compareAtPrice && (
+              <>
+                <span className="text-[var(--muted)] line-through">
+                  ₹{product.compareAtPrice}
+                </span>
+                <span className="rounded-full bg-red-50 px-3 py-1 text-sm font-semibold text-red-500">
+                  Save {discount}%
+                </span>
+              </>
+            )}
+          </div>
+
+          <p className="mt-5 max-w-xl text-sm leading-7 text-[var(--muted)]">
+            {product.description}
+          </p>
+
+          <div className="mt-6 flex items-center gap-3 text-sm text-[var(--muted)]">
+            <span className="text-yellow-500">⭐</span>
+            <span>
+              {product.rating} rating ({product.reviews} reviews)
+            </span>
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-4">
+            <button
+              onClick={() => addToCart(product)}
+              className="rounded-full bg-[var(--button-bg)] px-7 py-3.5 text-sm font-semibold text-[var(--button-text)] transition hover:bg-red-500 hover:text-white"
+            >
+              Add to Cart →
+            </button>
+
+            <button className="rounded-full border border-[var(--line)] bg-[var(--surface-strong)] px-7 py-3.5 text-sm font-semibold text-[var(--text)] transition hover:bg-[var(--text)] hover:text-[var(--bg)]">
+              Save to Wishlist
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

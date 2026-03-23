@@ -1,27 +1,24 @@
+/* -------------------------------------------------------
+   ANNOUNCEMENT MARQUEE
+-------------------------------------------------------- */
 export default function Marquee() {
+  const items = [
+    "Free shipping above ₹999",
+    "New arrivals every Friday",
+    "Secure payments with Razorpay",
+    "Premium packaging included",
+    "Easy 7-day returns",
+  ];
+
   return (
     <div className="bg-black text-white overflow-hidden">
-      <div className="whitespace-nowrap animate-marquee flex gap-12 py-3 text-sm tracking-wide">
-
-        <span>Free shipping on orders above ₹499</span>
-        <span className="text-red-500">◆</span>
-        <span>New arrivals every Friday</span>
-        <span className="text-red-500">◆</span>
-        <span>Razorpay & Stripe secure payments</span>
-        <span className="text-red-500">◆</span>
-        <span>7-day easy returns</span>
-        <span className="text-red-500">◆</span>
-
-        {/* duplicate for smooth loop */}
-        <span>Free shipping on orders above ₹499</span>
-        <span className="text-red-500">◆</span>
-        <span>New arrivals every Friday</span>
-        <span className="text-red-500">◆</span>
-        <span>Razorpay & Stripe secure payments</span>
-        <span className="text-red-500">◆</span>
-        <span>7-day easy returns</span>
-        <span className="text-red-500">◆</span>
-
+      <div className="animate-marquee flex whitespace-nowrap py-3 text-sm tracking-wide">
+        {[...items, ...items].map((item, index) => (
+          <span key={index} className="mx-6 flex items-center gap-6">
+            <span>{item}</span>
+            <span className="text-red-500">◆</span>
+          </span>
+        ))}
       </div>
     </div>
   );

@@ -1,17 +1,40 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const StoreContext = createContext();
 
+/* -------------------------------------------------------
+   GLOBAL APP STATE
+   -------------------------------------------------------
+   This stores:
+   - cart
+   - wishlist
+   - filters
+   - user auth
+   - theme
+   Theme is saved in localStorage so it persists.
+-------------------------------------------------------- */
 export const StoreProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOption, setSortOption] = useState("default");
-
   const [user, setUser] = useState(null);
 
-  // Fake login
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("shopora-theme") || "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("shopora-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+  };
+
+  // Fake login for now.
   const login = (email) => {
     if (email === "admin@shopora.com") {
       setUser({ email, role: "admin" });
@@ -24,62 +47,52 @@ export const StoreProvider = ({ children }) => {
     setUser(null);
   };
 
-  // CART
+  // -----------------------------------------------------
+  // CART ACTIONS
+  // -----------------------------------------------------
   const addToCart = (product) => {
-    const existing = cart.find(
-      (item) => item._id === product._id
-    );
+    setCart((prevCart) => {
+      const existing = prevCart.find((item) => item._id === product._id);
 
-    if (existing) {
-      setCart(
-        cart.map((item) =>
+      if (existing) {
+        return prevCart.map((item) =>
           item._id === product._id
-            ? {
-                ...item,
-                quantity: item.quantity + 1,
-              }
+            ? { ...item, quantity: item.quantity + 1 }
             : item
-        )
-      );
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
-    }
+        );
+      }
+
+      return [...prevCart, { ...product, quantity: 1 }];
+    });
   };
 
   const removeFromCart = (id) => {
-    setCart(cart.filter((item) => item._id !== id));
+    setCart((prevCart) => prevCart.filter((item) => item._id !== id));
   };
 
   const updateQuantity = (id, amount) => {
-    setCart(
-      cart.map((item) =>
+    setCart((prevCart) =>
+      prevCart.map((item) =>
         item._id === id
-          ? {
-              ...item,
-              quantity:
-                item.quantity + amount > 0
-                  ? item.quantity + amount
-                  : 1,
-            }
+          ? { ...item, quantity: Math.max(1, item.quantity + amount) }
           : item
       )
     );
   };
 
+  // -----------------------------------------------------
+  // WISHLIST ACTIONS
+  // -----------------------------------------------------
   const toggleWishlist = (product) => {
-    const exists = wishlist.find(
-      (item) => item._id === product._id
-    );
+    setWishlist((prevWishlist) => {
+      const exists = prevWishlist.find((item) => item._id === product._id);
 
-    if (exists) {
-      setWishlist(
-        wishlist.filter(
-          (item) => item._id !== product._id
-        )
-      );
-    } else {
-      setWishlist([...wishlist, product]);
-    }
+      if (exists) {
+        return prevWishlist.filter((item) => item._id !== product._id);
+      }
+
+      return [...prevWishlist, product];
+    });
   };
 
   return (
@@ -91,8 +104,10 @@ export const StoreProvider = ({ children }) => {
         searchQuery,
         sortOption,
         user,
+        theme,
         login,
         logout,
+        toggleTheme,
         addToCart,
         removeFromCart,
         updateQuantity,

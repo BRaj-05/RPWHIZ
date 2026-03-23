@@ -10,10 +10,14 @@ export const products = [
     badges: ["new", "sale"],
     rating: 4.8,
     reviews: 124,
+    image:
+      "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1200&q=80",
+    description:
+      "A refined tailored set with a soft linen texture made for elevated everyday wear.",
   },
   {
     _id: "2",
-    name: "iPhone 15 Pro Case",
+    name: "Minimal Phone Case",
     brand: "TechWrap",
     price: 899,
     compareAtPrice: 1499,
@@ -22,6 +26,10 @@ export const products = [
     badges: ["trending"],
     rating: 4.6,
     reviews: 89,
+    image:
+      "https://images.unsplash.com/photo-1605236453806-6ff36851218e?auto=format&fit=crop&w=1200&q=80",
+    description:
+      "Slim, protective, and premium-looking with a clean finish for modern devices.",
   },
   {
     _id: "3",
@@ -33,6 +41,10 @@ export const products = [
     badges: ["new"],
     rating: 4.9,
     reviews: 203,
+    image:
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?auto=format&fit=crop&w=1200&q=80",
+    description:
+      "An elegant silhouette with a soft sheen and graceful flow for special evenings.",
   },
   {
     _id: "4",
@@ -45,6 +57,10 @@ export const products = [
     badges: ["sale"],
     rating: 4.7,
     reviews: 456,
+    image:
+      "https://images.unsplash.com/photo-1585386959984-a41552231693?auto=format&fit=crop&w=1200&q=80",
+    description:
+      "Crisp sound, compact design, and a polished finish for premium listening.",
   },
   {
     _id: "5",
@@ -56,5 +72,9 @@ export const products = [
     badges: ["trending"],
     rating: 4.5,
     reviews: 67,
+    image:
+      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=1200&q=80",
+    description:
+      "A compact everyday crossbody with a clean structure and luxury-inspired feel.",
   },
 ];

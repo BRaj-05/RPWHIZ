@@ -1,107 +1,134 @@
 import { useContext } from "react";
 import { StoreContext } from "../../context/StoreContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
-export default function CartDrawer({ isOpen, setIsOpen }) {
-  const { cart, removeFromCart, updateQuantity } =
-    useContext(StoreContext);
+/* -------------------------------------------------------
+   CART DRAWER
+-------------------------------------------------------- */
+export default function CartDrawer({ isOpen, setIsOpen, onCheckout }) {
+  const { cart, removeFromCart, updateQuantity } = useContext(StoreContext);
+  const navigate = useNavigate();
 
-  const total = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  const goToCheckout = () => {
+    setIsOpen(false);
+    onCheckout?.();
+    navigate("/checkout");
+  };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
+            animate={{ opacity: 0.45 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
-            />
+          />
 
-          {/* Drawer */}
-          <motion.div
+          <motion.aside
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 120, damping: 20 }}
-            className="fixed right-0 top-0 h-full w-full sm:w-[420px] bg-white z-50 shadow-[ -20px_0_60px_rgba(0,0,0,0.25) ] p-6 flex flex-col"
+            className="fixed right-0 top-0 z-50 flex h-full w-full flex-col bg-[var(--bg)] shadow-[0_0_60px_rgba(0,0,0,0.18)] sm:w-[440px]"
           >
-            <h2 className="text-lg font-semibold mb-6">
-              Your Cart ({cart.length})
-            </h2>
+            <div className="border-b border-[var(--line)] p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.28em] text-red-500">
+                    Shopping Bag
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold">
+                    Your Cart ({cart.length})
+                  </h2>
+                </div>
 
-            <div className="flex-1 overflow-y-auto space-y-4">
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="h-10 w-10 rounded-full border border-[var(--line)] bg-[var(--surface-strong)]"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-4 overflow-y-auto p-6">
               {cart.length === 0 ? (
-                <p className="text-gray-500 text-sm">
+                <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-[var(--surface-strong)] p-8 text-sm text-[var(--muted)]">
                   Your cart is empty.
-                </p>
+                </div>
               ) : (
                 cart.map((item) => (
                   <div
                     key={item._id}
-                    className="flex justify-between items-start border-b pb-3"
+                    className="rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface-strong)] p-4 shadow-sm"
                   >
-                    <div>
-                      <p className="font-medium text-sm">
-                        {item.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        ₹{item.price}
-                      </p>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex gap-4">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="h-16 w-16 rounded-2xl object-cover"
+                        />
 
-                      <div className="flex gap-2 mt-2">
-                        <button
-                          onClick={() =>
-                            updateQuantity(item._id, -1)
-                          }
-                          className="px-2 border rounded"
-                        >
-                          -
-                        </button>
-                        <span>{item.quantity}</span>
-                        <button
-                          onClick={() =>
-                            updateQuantity(item._id, 1)
-                          }
-                          className="px-2 border rounded"
-                        >
-                          +
-                        </button>
+                        <div>
+                          <p className="font-medium">{item.name}</p>
+                          <p className="text-xs text-[var(--muted)]">{item.brand}</p>
+                          <p className="mt-2 text-sm font-semibold">₹{item.price}</p>
+
+                          <div className="mt-3 flex items-center gap-2">
+                            <button
+                              onClick={() => updateQuantity(item._id, -1)}
+                              className="h-8 w-8 rounded-full border border-[var(--line)] bg-[var(--surface-strong)]"
+                            >
+                              -
+                            </button>
+                            <span className="min-w-6 text-center text-sm font-medium">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => updateQuantity(item._id, 1)}
+                              className="h-8 w-8 rounded-full border border-[var(--line)] bg-[var(--surface-strong)]"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
 
-                    <button
-                      onClick={() =>
-                        removeFromCart(item._id)
-                      }
-                      className="text-red-500 text-sm"
-                    >
-                      ✕
-                    </button>
+                      <button
+                        onClick={() => removeFromCart(item._id)}
+                        className="text-sm text-red-500"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
             </div>
 
             {cart.length > 0 && (
-              <div className="border-t pt-4">
-                <div className="flex justify-between font-semibold mb-4">
+              <div className="border-t border-[var(--line)] p-6">
+                <div className="mb-4 flex items-center justify-between text-lg font-semibold">
                   <span>Total</span>
                   <span>₹{total}</span>
                 </div>
 
-                <button className="w-full bg-black text-white py-3 rounded-full hover:bg-red-500 transition">
-                  Checkout →
+                <button
+                  onClick={goToCheckout}
+                  className="w-full rounded-full bg-[var(--button-bg)] py-4 text-sm font-semibold text-[var(--button-text)] transition hover:bg-red-500 hover:text-white"
+                >
+                  Proceed to Checkout →
                 </button>
               </div>
             )}
-          </motion.div>
+          </motion.aside>
         </>
       )}
     </AnimatePresence>

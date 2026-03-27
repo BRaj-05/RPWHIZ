@@ -5,6 +5,10 @@ import ProductCard from "./ProductCard";
 
 /* -------------------------------------------------------
    PRODUCT GRID
+   -------------------------------------------------------
+   Important change:
+   - added id="discover-collection"
+   - hero button scrolls here
 -------------------------------------------------------- */
 export default function ProductGrid() {
   const { selectedCategory, searchQuery, sortOption, setSortOption } =
@@ -34,7 +38,10 @@ export default function ProductGrid() {
   }
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8 py-10">
+    <section
+      id="discover-collection"
+      className="px-4 sm:px-6 lg:px-8 py-10 scroll-mt-28"
+    >
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>

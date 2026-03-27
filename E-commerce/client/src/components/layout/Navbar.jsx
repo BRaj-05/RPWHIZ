@@ -6,16 +6,16 @@ import { motion, AnimatePresence } from "framer-motion";
 /* -------------------------------------------------------
    NAVBAR
    -------------------------------------------------------
-   What changed here:
-   - Category buttons now navigate back to home page
-   - Category selection still updates the filtered products
-   - Works from wishlist, checkout, admin, or anywhere else
-   - Mobile menu uses the same logic
+   This version highlights the active category:
+   - navbar category buttons reflect selectedCategory
+   - clicking a category still goes to home
+   - hero and navbar stay in sync through context
 -------------------------------------------------------- */
 export default function Navbar({ openCart, openAuth }) {
   const {
     cart,
     wishlist,
+    selectedCategory,
     setSelectedCategory,
     searchQuery,
     setSearchQuery,
@@ -28,10 +28,8 @@ export default function Navbar({ openCart, openAuth }) {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Count total items in cart
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // All navbar category options
   const categories = [
     { label: "All", value: "all" },
     { label: "Clothing", value: "clothing" },
@@ -40,24 +38,29 @@ export default function Navbar({ openCart, openAuth }) {
   ];
 
   /* -------------------------------------------------------
-     HANDLE CATEGORY CLICK
+     CATEGORY CLICK
      -------------------------------------------------------
-     This is the important fix:
-     - updates selected category in context
-     - sends user to home page
-     - closes mobile menu if open
+     Updates selected category and sends the user to the
+     collection area on the home page.
   -------------------------------------------------------- */
   const handleCategoryChange = (value) => {
     setSelectedCategory(value);
     navigate("/");
     setMobileMenuOpen(false);
+
+    // Let the page scroll naturally if already on home,
+    // or after route change the grid will be present.
+    setTimeout(() => {
+      const target = document.getElementById("discover-collection");
+      if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
   };
 
   return (
     <nav className="sticky top-0 z-50 px-4 sm:px-6 lg:px-8 pt-3">
       <div className="mx-auto max-w-7xl luxury-card rounded-[1.75rem] px-4 sm:px-5 py-4">
         <div className="flex items-center justify-between gap-3">
-          {/* Brand logo */}
+          {/* Brand */}
           <Link
             to="/"
             onClick={() => setSelectedCategory("all")}
@@ -66,7 +69,7 @@ export default function Navbar({ openCart, openAuth }) {
             Shop<span className="text-red-500">ora</span>
           </Link>
 
-          {/* Desktop Search Bar */}
+          {/* Search */}
           <div className="hidden md:block flex-1 max-w-xl mx-6">
             <div className="relative">
               <input
@@ -82,22 +85,29 @@ export default function Navbar({ openCart, openAuth }) {
             </div>
           </div>
 
-          {/* Desktop Category Bar */}
+          {/* Category bar */}
           <div className="hidden lg:flex items-center gap-2 rounded-full bg-black/5 p-1 dark:bg-white/5">
-            {categories.map((item) => (
-              <button
-                key={item.value}
-                onClick={() => handleCategoryChange(item.value)}
-                className="rounded-full px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[var(--surface-strong)] hover:text-[var(--text)] cursor-pointer"
-              >
-                {item.label}
-              </button>
-            ))}
+            {categories.map((item) => {
+              const isActive = selectedCategory === item.value;
+
+              return (
+                <button
+                  key={item.value}
+                  onClick={() => handleCategoryChange(item.value)}
+                  className={`rounded-full px-4 py-2 text-sm transition cursor-pointer ${
+                    isActive
+                      ? "bg-[var(--surface-strong)] text-[var(--text)] shadow-sm"
+                      : "text-[var(--muted)] hover:bg-[var(--surface-strong)] hover:text-[var(--text)]"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Action Buttons */}
+          {/* Actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Wishlist */}
             <Link
               to="/wishlist"
               className="relative h-11 w-11 rounded-full border border-[var(--line)] bg-[var(--surface-strong)] flex items-center justify-center transition hover:scale-105 cursor-pointer"
@@ -110,7 +120,6 @@ export default function Navbar({ openCart, openAuth }) {
               )}
             </Link>
 
-            {/* Cart */}
             <button
               onClick={openCart}
               className="relative h-11 w-11 rounded-full border border-[var(--line)] bg-[var(--surface-strong)] flex items-center justify-center transition hover:scale-105 cursor-pointer"
@@ -123,7 +132,6 @@ export default function Navbar({ openCart, openAuth }) {
               )}
             </button>
 
-            {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
               className="h-11 w-11 rounded-full border border-[var(--line)] bg-[var(--surface-strong)] flex items-center justify-center transition hover:scale-105 cursor-pointer"
@@ -132,7 +140,6 @@ export default function Navbar({ openCart, openAuth }) {
               {theme === "light" ? "🌙" : "☀️"}
             </button>
 
-            {/* Auth Button */}
             {user ? (
               <button
                 onClick={logout}
@@ -149,7 +156,6 @@ export default function Navbar({ openCart, openAuth }) {
               </button>
             )}
 
-            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen((s) => !s)}
               className="lg:hidden h-11 w-11 rounded-full border border-[var(--line)] bg-[var(--surface-strong)] cursor-pointer"
@@ -159,7 +165,7 @@ export default function Navbar({ openCart, openAuth }) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
@@ -168,7 +174,6 @@ export default function Navbar({ openCart, openAuth }) {
               exit={{ opacity: 0, y: -10 }}
               className="mt-4 rounded-[1.5rem] border border-[var(--line)] bg-[var(--surface)] p-4 lg:hidden"
             >
-              {/* Mobile Search */}
               <input
                 type="text"
                 placeholder="Search luxury essentials..."
@@ -177,17 +182,24 @@ export default function Navbar({ openCart, openAuth }) {
                 className="mb-4 w-full rounded-full border border-[var(--line)] bg-[var(--surface-strong)] px-5 py-3 text-sm outline-none"
               />
 
-              {/* Mobile Categories */}
               <div className="flex flex-wrap gap-2">
-                {categories.map((item) => (
-                  <button
-                    key={item.value}
-                    onClick={() => handleCategoryChange(item.value)}
-                    className="rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--muted)] cursor-pointer"
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                {categories.map((item) => {
+                  const isActive = selectedCategory === item.value;
+
+                  return (
+                    <button
+                      key={item.value}
+                      onClick={() => handleCategoryChange(item.value)}
+                      className={`rounded-full border px-4 py-2 text-sm cursor-pointer ${
+                        isActive
+                          ? "bg-[var(--surface-strong)] text-[var(--text)] border-[var(--line)]"
+                          : "border-[var(--line)] text-[var(--muted)]"
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           )}

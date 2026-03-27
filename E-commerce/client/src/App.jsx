@@ -20,7 +20,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AdminLogin from "./components/admin/pages/AdminLogin";
 
 function App() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { isCartOpen, setIsCartOpen } = useContext(StoreContext);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   const location = useLocation();
@@ -111,9 +111,8 @@ function App() {
       <AuthModal isOpen={isAuthOpen} setIsOpen={setIsAuthOpen} />
 
       <CartDrawer
-        isOpen={isCartOpen}
-        setIsOpen={setIsCartOpen}
-        onCheckout={() => setIsCartOpen(false)}
+      isOpen={isCartOpen}
+      setIsOpen={setIsCartOpen}
       />
     </div>
   );

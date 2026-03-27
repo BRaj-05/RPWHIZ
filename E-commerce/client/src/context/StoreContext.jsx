@@ -18,6 +18,7 @@ const getStoredUser = () => {
 export const StoreProvider = ({ children }) => {
 
   // ================= CORE STATE =================
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
 
@@ -106,20 +107,23 @@ export const StoreProvider = ({ children }) => {
 
   /* ---------------- CART ---------------- */
   const addToCart = (product) => {
-    setCart((prev) => {
-      const exist = prev.find((i) => i._id === product._id);
+  setCart((prev) => {
+    const exist = prev.find((i) => i._id === product._id);
 
-      if (exist) {
-        return prev.map((i) =>
-          i._id === product._id
-            ? { ...i, quantity: i.quantity + 1 }
-            : i
-        );
-      }
+    if (exist) {
+      return prev.map((i) =>
+        i._id === product._id
+          ? { ...i, quantity: i.quantity + 1 }
+          : i
+      );
+    }
 
-      return [...prev, { ...product, quantity: 1 }];
-    });
-  };
+    return [...prev, { ...product, quantity: 1 }];
+  });
+
+  // 🔥 AUTO OPEN CART DRAWER
+  setIsCartOpen(true);
+};
 
   const removeFromCart = (id) => {
     setCart((prev) => prev.filter((i) => i._id !== id));
@@ -166,11 +170,16 @@ export const StoreProvider = ({ children }) => {
     setCart([]);
   };
 
+  const openCartDrawer = () => setIsCartOpen(true);
+
   return (
     <StoreContext.Provider
       value={{
         cart,
         wishlist,
+        isCartOpen,
+        setIsCartOpen,
+        openCartDrawer,
         products,
         setProducts,
         orders,

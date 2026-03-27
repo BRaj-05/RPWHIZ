@@ -1,16 +1,18 @@
-import { useContext } from "react";
 import { Navigate } from "react-router-dom";
-import { StoreContext } from "../../context/StoreContext";
 
-/* -------------------------------------------------------
-   ADMIN ROUTE GUARD
--------------------------------------------------------- */
 export default function ProtectedRoute({ children }) {
-  const { user } = useContext(StoreContext);
+  const admin = JSON.parse(localStorage.getItem("admin_auth"));
 
-  if (!user || user.role !== "admin") {
+  // ❌ Not logged in → go to admin login
+  if (!admin) {
+    return <Navigate to="/control-center-7845/login" replace />;
+  }
+
+  // ❌ Not admin → block
+  if (admin.role !== "admin") {
     return <Navigate to="/" replace />;
   }
 
+  // ✅ Allowed
   return children;
 }

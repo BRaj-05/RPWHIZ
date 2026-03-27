@@ -1,44 +1,63 @@
 import { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
+
+// CUSTOMER UI
 import Navbar from "./components/layout/Navbar";
 import Hero from "./components/hero/Hero";
 import Marquee from "./components/ui/Marquee";
 import ProductGrid from "./components/product/ProductGrid";
 import ProductDetails from "./components/product/ProductDetails";
 import CartDrawer from "./components/cart/CartDrawer";
-import AuthModal from "./components/auth/AuthModal";
-import AdminDashboard from "./components/admin/AdminDashboard";
-import ProtectedRoute from "./components/auth/ProtectedRoute";
 import WishlistPage from "./components/wishlist/WishlistPage";
 import CheckoutPage from "./components/checkout/CheckoutPage";
 import Footer from "./components/layout/Footer";
+import AuthModal from "./components/auth/AuthModal";
 
-/* -------------------------------------------------------
-   APP ROOT
-   -------------------------------------------------------
-   Global overlays and page routes live here.
--------------------------------------------------------- */
+// ADMIN
+import AdminRoutes from "./components/admin/AdminRoutes";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AdminLogin from "./components/admin/pages/AdminLogin"; // ✅ FIX (IMPORTANT)
+
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
 
+  const location = useLocation();
+
+  // ✅ FIX: detect admin route correctly
+  const isAdmin = location.pathname.startsWith("/control-center-7845");
+
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
-      <Navbar
-        openCart={() => setIsCartOpen(true)}
-        openAuth={() => setIsAuthOpen(true)}
-      />
 
+      {/* ✅ SHOW NAVBAR ONLY FOR CUSTOMER */}
+      {!isAdmin && (
+        <Navbar
+          openCart={() => setIsCartOpen(true)}
+          openAuth={() => setIsAuthOpen(true)}
+        />
+      )}
+
+      {/* ROUTES */}
       <Routes>
+
+        {/* ✅ ADMIN LOGIN */}
         <Route
-          path="/admin"
+          path="/control-center-7845/login"
+          element={<AdminLogin />}
+        />
+
+        {/* ✅ ADMIN PANEL */}
+        <Route
+          path="/control-center-7845/*"
           element={
             <ProtectedRoute>
-              <AdminDashboard />
+              <AdminRoutes />
             </ProtectedRoute>
           }
         />
 
+        {/* CUSTOMER ROUTES */}
         <Route
           path="/wishlist"
           element={<WishlistPage openAuth={() => setIsAuthOpen(true)} />}
@@ -58,10 +77,13 @@ function App() {
         />
 
         <Route path="/product/:id" element={<ProductDetails />} />
+
       </Routes>
 
-      <Footer />
+      {/* ✅ FOOTER ONLY FOR CUSTOMER */}
+      {!isAdmin && <Footer />}
 
+      {/* GLOBAL */}
       <AuthModal isOpen={isAuthOpen} setIsOpen={setIsAuthOpen} />
 
       <CartDrawer
@@ -69,8 +91,13 @@ function App() {
         setIsOpen={setIsCartOpen}
         onCheckout={() => setIsCartOpen(false)}
       />
+
     </div>
   );
 }
 
 export default App;
+
+
+// email: admin@shopora.com
+// password: admin123

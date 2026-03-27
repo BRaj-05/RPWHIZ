@@ -7,7 +7,7 @@
 .btn-primary {
   @apply rounded-full bg-[var(--button-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-text)] transition hover:bg-red-500 hover:text-white;
 }
-/* =======================================================
+/* =========s==============================================
    THEME TOKENS
    -------------------------------------------------------
    We use CSS variables so both light and dark theme

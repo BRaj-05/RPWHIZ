@@ -3,15 +3,25 @@ import { createContext, useContext, useEffect, useState } from "react";
 export const StoreContext = createContext();
 
 /* -------------------------------------------------------
-   GLOBAL APP STATE (UPGRADED)
+   LOCAL STORAGE HELPERS
 -------------------------------------------------------- */
+const getStoredUsers = () => {
+  const raw = localStorage.getItem("shopora-users");
+  return raw ? JSON.parse(raw) : [];
+};
+
+const getStoredUser = () => {
+  const raw = localStorage.getItem("shopora-current-user");
+  return raw ? JSON.parse(raw) : null;
+};
+
 export const StoreProvider = ({ children }) => {
-  
+
   // ================= CORE STATE =================
   const [cart, setCart] = useState([]);
   const [wishlist, setWishlist] = useState([]);
 
-  // 🔥 NEW (ADMIN REQUIRED)
+  // ADMIN FEATURES
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
@@ -22,13 +32,15 @@ export const StoreProvider = ({ children }) => {
   const [sortOption, setSortOption] = useState("default");
 
   // ================= AUTH =================
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => getStoredUser());
+  const [storedUsers, setStoredUsers] = useState(() => getStoredUsers());
 
   // ================= THEME =================
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("shopora-theme") || "light";
   });
 
+  /* ---------------- THEME ---------------- */
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem("shopora-theme", theme);
@@ -38,31 +50,61 @@ export const StoreProvider = ({ children }) => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  // ================= AUTH =================
-  const login = (email) => {
-    if (email === "admin@shopora.com") {
-      const adminUser = { email, role: "admin" };
-      setUser(adminUser);
-      localStorage.setItem("user", JSON.stringify(adminUser));
-    } else {
-      const normalUser = { email, role: "customer" };
-      setUser(normalUser);
-      localStorage.setItem("user", JSON.stringify(normalUser));
+  /* ---------------- AUTH STORAGE ---------------- */
+  useEffect(() => {
+    localStorage.setItem("shopora-current-user", JSON.stringify(user));
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem("shopora-users", JSON.stringify(storedUsers));
+  }, [storedUsers]);
+
+  /* ---------------- LOGIN ---------------- */
+  const login = (email, password) => {
+    if (!email || !password) {
+      return { success: false, message: "Enter email & password" };
     }
+
+    if (email === "admin@shopora.com" && password === "admin123") {
+      setUser({ email, role: "admin" });
+      return { success: true };
+    }
+
+    const found = storedUsers.find(
+      (u) => u.email === email && u.password === password
+    );
+
+    if (!found) {
+      return { success: false, message: "Invalid credentials" };
+    }
+
+    setUser({ email, role: "customer" });
+    return { success: true };
+  };
+
+  /* ---------------- SIGNUP ---------------- */
+  const signup = (email, password) => {
+    if (!email || !password) {
+      return { success: false, message: "Fill all fields" };
+    }
+
+    const exists = storedUsers.find((u) => u.email === email);
+    if (exists) {
+      return { success: false, message: "User already exists" };
+    }
+
+    const newUser = { email, password };
+    setStoredUsers((prev) => [...prev, newUser]);
+    setUser({ email, role: "customer" });
+
+    return { success: true };
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("user");
   };
 
-  // 🔥 LOAD USER FROM LOCAL STORAGE
-  useEffect(() => {
-    const saved = localStorage.getItem("user");
-    if (saved) setUser(JSON.parse(saved));
-  }, []);
-
-  // ================= CART =================
+  /* ---------------- CART ---------------- */
   const addToCart = (product) => {
     setCart((prev) => {
       const exist = prev.find((i) => i._id === product._id);
@@ -93,7 +135,7 @@ export const StoreProvider = ({ children }) => {
     );
   };
 
-  // ================= WISHLIST =================
+  /* ---------------- WISHLIST ---------------- */
   const toggleWishlist = (product) => {
     setWishlist((prev) => {
       const exist = prev.find((i) => i._id === product._id);
@@ -106,7 +148,7 @@ export const StoreProvider = ({ children }) => {
     });
   };
 
-  // ================= ORDERS =================
+  /* ---------------- ORDERS ---------------- */
   const placeOrder = (orderData) => {
     const newOrder = {
       _id: "ORD-" + Date.now(),
@@ -124,58 +166,39 @@ export const StoreProvider = ({ children }) => {
     setCart([]);
   };
 
-  // ================= PROVIDER =================
   return (
     <StoreContext.Provider
       value={{
-        // cart
         cart,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-
-        // wishlist
         wishlist,
-        toggleWishlist,
-
-        // products (admin)
         products,
         setProducts,
-
-        // orders (admin)
         orders,
         setOrders,
-        placeOrder,
-
-        // users
         users,
         setUsers,
-
-        // filters
         selectedCategory,
         setSelectedCategory,
         searchQuery,
         setSearchQuery,
         sortOption,
         setSortOption,
-
-        // auth
         user,
         login,
+        signup,
         logout,
-
-        // theme
         theme,
         toggleTheme,
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        toggleWishlist,
+        placeOrder,
       }}
     >
       {children}
     </StoreContext.Provider>
   );
 };
-
-// ✅ THIS FIXES YOUR ERROR
-// export const useStore = () => useContext(StoreContext);
-// import { useContext } from "react";
 
 export const useStore = () => useContext(StoreContext);

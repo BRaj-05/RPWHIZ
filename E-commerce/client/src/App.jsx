@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
-// CUSTOMER UI
 import Navbar from "./components/layout/Navbar";
 import Hero from "./components/hero/Hero";
 import Marquee from "./components/ui/Marquee";
@@ -13,10 +12,12 @@ import CheckoutPage from "./components/checkout/CheckoutPage";
 import Footer from "./components/layout/Footer";
 import AuthModal from "./components/auth/AuthModal";
 
+import { StoreContext } from "./context/StoreContext";
+
 // ADMIN
 import AdminRoutes from "./components/admin/AdminRoutes";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
-import AdminLogin from "./components/admin/pages/AdminLogin"; // ✅ FIX (IMPORTANT)
+import AdminLogin from "./components/admin/pages/AdminLogin";
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -24,13 +25,16 @@ function App() {
 
   const location = useLocation();
 
-  // ✅ FIX: detect admin route correctly
+  // detect admin route
   const isAdmin = location.pathname.startsWith("/control-center-7845");
+
+  // category logic (from context)
+  const { selectedCategory } = useContext(StoreContext);
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
 
-      {/* ✅ SHOW NAVBAR ONLY FOR CUSTOMER */}
+      {/* Navbar only for customer */}
       {!isAdmin && (
         <Navbar
           openCart={() => setIsCartOpen(true)}
@@ -38,16 +42,15 @@ function App() {
         />
       )}
 
-      {/* ROUTES */}
       <Routes>
 
-        {/* ✅ ADMIN LOGIN */}
+        {/* ADMIN LOGIN */}
         <Route
           path="/control-center-7845/login"
           element={<AdminLogin />}
         />
 
-        {/* ✅ ADMIN PANEL */}
+        {/* ADMIN PANEL */}
         <Route
           path="/control-center-7845/*"
           element={
@@ -69,8 +72,29 @@ function App() {
           path="/"
           element={
             <>
-              <Hero />
-              <Marquee />
+              {/* Hero / Category Banner */}
+              {selectedCategory === "all" ? (
+                <>
+                  <Hero />
+                  <Marquee />
+                </>
+              ) : (
+                <section className="px-4 sm:px-6 lg:px-8 pt-8 pb-12">
+                  <div className="mx-auto max-w-7xl rounded-[2rem] border border-[var(--line)] bg-[var(--surface)] p-6 sm:p-8">
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-red-500">
+                      {selectedCategory}
+                    </p>
+                    <h1 className="mt-3 text-4xl sm:text-5xl font-semibold tracking-[-0.05em]">
+                      {selectedCategory.charAt(0).toUpperCase() +
+                        selectedCategory.slice(1)} collection
+                    </h1>
+                    <p className="mt-3 max-w-2xl text-sm text-[var(--muted)]">
+                      Explore curated products from this category.
+                    </p>
+                  </div>
+                </section>
+              )}
+
               <ProductGrid />
             </>
           }
@@ -80,10 +104,10 @@ function App() {
 
       </Routes>
 
-      {/* ✅ FOOTER ONLY FOR CUSTOMER */}
+      {/* Footer only for customer */}
       {!isAdmin && <Footer />}
 
-      {/* GLOBAL */}
+      {/* GLOBAL COMPONENTS */}
       <AuthModal isOpen={isAuthOpen} setIsOpen={setIsAuthOpen} />
 
       <CartDrawer
@@ -91,13 +115,12 @@ function App() {
         setIsOpen={setIsCartOpen}
         onCheckout={() => setIsCartOpen(false)}
       />
-
     </div>
   );
 }
 
 export default App;
 
-
+// admin login
 // email: admin@shopora.com
 // password: admin123

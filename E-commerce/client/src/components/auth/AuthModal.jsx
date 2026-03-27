@@ -4,27 +4,64 @@ import { StoreContext } from "../../context/StoreContext";
 
 /* -------------------------------------------------------
    AUTH MODAL
+   -------------------------------------------------------
+   What changed:
+   - uses a real form
+   - shows validation errors
+   - login/signup both work
+   - modal only closes on successful auth
+   - overlay no longer feels "stuck"
 -------------------------------------------------------- */
 export default function AuthModal({ isOpen, setIsOpen }) {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
 
-  const { login } = useContext(StoreContext);
+  const { login, signup } = useContext(StoreContext);
 
-  const handleSubmit = () => {
-    if (!email || !password) return;
-
-    login(email);
-    setIsOpen(false);
+  const resetForm = () => {
     setEmail("");
     setPassword("");
+    setMessage("");
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    /* -------------------------------------------------------
+       Do not close the modal if fields are empty.
+       Instead show a clear message so the user knows what is wrong.
+    -------------------------------------------------------- */
+    if (!email.trim() || !password.trim()) {
+      setMessage("Please fill in both email and password.");
+      return;
+    }
+
+    const result = isLogin
+      ? login(email.trim(), password)
+      : signup(email.trim(), password);
+
+    if (!result.success) {
+      setMessage(result.message);
+      return;
+    }
+
+    /* -------------------------------------------------------
+       Success path:
+       - clear fields
+       - close modal
+       - allow the rest of the page to work normally
+    -------------------------------------------------------- */
+    resetForm();
+    setIsOpen(false);
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Backdrop overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.45 }}
@@ -33,6 +70,7 @@ export default function AuthModal({ isOpen, setIsOpen }) {
             onClick={() => setIsOpen(false)}
           />
 
+          {/* Modal */}
           <motion.div
             initial={{ scale: 0.92, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -50,12 +88,15 @@ export default function AuthModal({ isOpen, setIsOpen }) {
                 </h2>
               </div>
 
-              <div className="p-6">
+              <form onSubmit={handleSubmit} className="p-6">
                 <input
                   type="email"
                   placeholder="Email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setMessage("");
+                  }}
                   className="mb-3 w-full rounded-full border border-[var(--line)] bg-transparent px-4 py-3 text-sm outline-none"
                 />
 
@@ -63,13 +104,21 @@ export default function AuthModal({ isOpen, setIsOpen }) {
                   type="password"
                   placeholder="Password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mb-5 w-full rounded-full border border-[var(--line)] bg-transparent px-4 py-3 text-sm outline-none"
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setMessage("");
+                  }}
+                  className="mb-4 w-full rounded-full border border-[var(--line)] bg-transparent px-4 py-3 text-sm outline-none"
                 />
 
+                {/* Small feedback text for success/failure */}
+                {message && (
+                  <p className="mb-4 text-sm text-red-500">{message}</p>
+                )}
+
                 <button
-                  onClick={handleSubmit}
-                  className="w-full rounded-full bg-[var(--button-bg)] py-3.5 text-sm font-semibold text-[var(--button-text)] transition hover:bg-red-500 hover:text-white"
+                  type="submit"
+                  className="w-full rounded-full bg-[var(--button-bg)] py-3.5 text-sm font-semibold text-[var(--button-text)] transition hover:bg-red-500 hover:text-white cursor-pointer"
                 >
                   {isLogin ? "Login" : "Register"}
                 </button>
@@ -77,13 +126,19 @@ export default function AuthModal({ isOpen, setIsOpen }) {
                 <p className="mt-5 text-center text-sm text-[var(--muted)]">
                   {isLogin ? "No account yet?" : "Already registered?"}{" "}
                   <button
-                    onClick={() => setIsLogin(!isLogin)}
-                    className="font-semibold text-red-500"
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(!isLogin);
+                      setMessage("");
+                    }}
+                    className="font-semibold text-red-500 cursor-pointer"
                   >
                     {isLogin ? "Create one" : "Login"}
                   </button>
                 </p>
-              </div>
+
+                {/* Helpful demo hint */}
+              </form>
             </div>
           </motion.div>
         </>

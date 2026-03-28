@@ -1,4 +1,3 @@
-import AdminLayout from "../layout/AdminLayout";
 import { useStore } from "../../../context/StoreContext";
 import RevenueChart from "../dashboard/RevenueChart";
 import OrdersTable from "../dashboard/OrdersTable";
@@ -13,14 +12,15 @@ export default function Dashboard() {
     0
   );
 
-  // ✅ CHART DATA (FIXED)
+  // ✅ CHART DATA
   const chartData = orders.map((o, i) => ({
     name: `#${i + 1}`,
     value: o.grandTotal || 0,
   }));
 
   return (
-    <AdminLayout>
+    <div className="space-y-6">
+
       {/* HEADER */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Dashboard</h1>
@@ -31,7 +31,7 @@ export default function Dashboard() {
       </div>
 
       {/* ================= STATS ================= */}
-      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6 mt-4">
+      <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-6">
 
         <StatCard title="Revenue" value={`₹${totalRevenue}`} />
         <StatCard title="Orders" value={orders.length} />
@@ -41,7 +41,7 @@ export default function Dashboard() {
       </div>
 
       {/* ================= CHART + TABLE ================= */}
-      <div className="grid lg:grid-cols-2 gap-6 mt-6">
+      <div className="grid lg:grid-cols-2 gap-6">
 
         {/* CHART */}
         <motion.div
@@ -62,7 +62,7 @@ export default function Dashboard() {
       </div>
 
       {/* ================= EXTRA INSIGHTS ================= */}
-      <div className="grid md:grid-cols-3 gap-6 mt-6">
+      <div className="grid md:grid-cols-3 gap-6">
 
         <InsightCard
           title="Avg Order Value"
@@ -80,7 +80,8 @@ export default function Dashboard() {
         />
 
       </div>
-    </AdminLayout>
+
+    </div>
   );
 }
 

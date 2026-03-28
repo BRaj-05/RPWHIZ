@@ -3,6 +3,7 @@
 
 ### Node ###
 # Logs
+firebase-key.json
 logs
 *.log
 npm-debug.log*

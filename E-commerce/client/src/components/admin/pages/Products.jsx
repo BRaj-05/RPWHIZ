@@ -1,166 +1,161 @@
-import AdminLayout from "../layout/AdminLayout";
-import { useStore } from "../../../context/StoreContext";
 import { useState } from "react";
 
 export default function Products() {
-  const { products, setProducts } = useStore();
+  const [products, setProducts] = useState([
+    { id: 1, name: "iPhone 15", price: 80000, stock: 10 },
+    { id: 2, name: "Nike Shoes", price: 5000, stock: 25 },
+  ]);
+
+  const [showModal, setShowModal] = useState(false);
+  const [editing, setEditing] = useState(null);
 
   const [form, setForm] = useState({
     name: "",
     price: "",
     stock: "",
-    category: "",
   });
 
-  const [editing, setEditing] = useState(null);
+  // ADD / UPDATE
+  const handleSubmit = () => {
+    if (!form.name || !form.price) return;
 
-  // ADD PRODUCT
-  const handleAdd = () => {
-    if (!form.name) return;
+    if (editing) {
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === editing.id ? { ...p, ...form } : p
+        )
+      );
+    } else {
+      setProducts([
+        ...products,
+        { id: Date.now(), ...form },
+      ]);
+    }
 
-    setProducts([
-      ...products,
-      {
-        _id: Date.now(),
-        ...form,
-        price: Number(form.price),
-        stock: Number(form.stock),
-      },
-    ]);
-
-    setForm({ name: "", price: "", stock: "", category: "" });
-  };
-
-  // DELETE PRODUCT
-  const handleDelete = (id) => {
-    setProducts(products.filter((p) => p._id !== id));
-  };
-
-  // UPDATE PRODUCT
-  const handleUpdate = () => {
-    setProducts(
-      products.map((p) =>
-        p._id === editing._id ? editing : p
-      )
-    );
+    setForm({ name: "", price: "", stock: "" });
     setEditing(null);
+    setShowModal(false);
+  };
+
+  // DELETE
+  const handleDelete = (id) => {
+    setProducts(products.filter((p) => p.id !== id));
+  };
+
+  // EDIT
+  const handleEdit = (product) => {
+    setEditing(product);
+    setForm(product);
+    setShowModal(true);
   };
 
   return (
-    <AdminLayout>
-      <h1 className="text-2xl font-semibold">Products</h1>
+    <div className="space-y-6 animate-fadeIn">
 
-      {/* ADD FORM */}
-      <div className="grid grid-cols-4 gap-3 mt-4">
-        <input
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) =>
-            setForm({ ...form, name: e.target.value })
-          }
-          className="bg-white/5 px-3 py-2 rounded"
-        />
-        <input
-          placeholder="Price"
-          value={form.price}
-          onChange={(e) =>
-            setForm({ ...form, price: e.target.value })
-          }
-          className="bg-white/5 px-3 py-2 rounded"
-        />
-        <input
-          placeholder="Stock"
-          value={form.stock}
-          onChange={(e) =>
-            setForm({ ...form, stock: e.target.value })
-          }
-          className="bg-white/5 px-3 py-2 rounded"
-        />
-        <input
-          placeholder="Category"
-          value={form.category}
-          onChange={(e) =>
-            setForm({ ...form, category: e.target.value })
-          }
-          className="bg-white/5 px-3 py-2 rounded"
-        />
+      {/* HEADER */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">Products</h1>
+
+        <button
+          onClick={() => setShowModal(true)}
+          className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600"
+        >
+          + Add Product
+        </button>
       </div>
 
-      <button
-        onClick={handleAdd}
-        className="bg-red-500 px-4 py-2 rounded mt-3"
-      >
-        Add Product
-      </button>
+      {/* TABLE */}
+      <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
+        <table className="w-full text-sm">
 
-      {/* PRODUCT LIST */}
-      <div className="grid md:grid-cols-3 gap-4 mt-6">
-        {products.map((p) => (
-          <div
-            key={p._id}
-            className="bg-white/5 p-4 rounded-xl border border-white/10"
-          >
-            <h3 className="font-semibold">{p.name}</h3>
-            <p>₹{p.price}</p>
-            <p className="text-xs text-gray-400">{p.category}</p>
+          <thead className="text-gray-400 border-b border-white/10">
+            <tr>
+              <th className="p-3 text-left">Name</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-            {p.stock < 5 && (
-              <span className="text-red-400 text-xs">
-                Low Stock
-              </span>
-            )}
+          <tbody>
+            {products.map((p) => (
+              <tr key={p.id} className="border-b border-white/5 hover:bg-white/5">
 
-            <div className="flex gap-3 mt-3">
-              <button
-                onClick={() => setEditing(p)}
-                className="text-blue-400"
-              >
-                Edit
-              </button>
+                <td className="p-3">{p.name}</td>
+                <td>₹{p.price}</td>
+                <td>{p.stock}</td>
 
-              <button
-                onClick={() => handleDelete(p._id)}
-                className="text-red-400"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        ))}
+                <td className="space-x-2">
+                  <button
+                    onClick={() => handleEdit(p)}
+                    className="text-blue-400"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDelete(p.id)}
+                    className="text-red-400"
+                  >
+                    Delete
+                  </button>
+                </td>
+
+              </tr>
+            ))}
+          </tbody>
+
+        </table>
       </div>
 
-      {/* EDIT MODAL */}
-      {editing && (
+      {/* MODAL */}
+      {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
 
-          <div className="bg-[#020617] p-6 rounded-xl w-[400px]">
+          <div className="bg-[#020617] p-6 rounded-xl w-[350px] border border-white/10">
 
-            <h2>Edit Product</h2>
+            <h2 className="text-lg mb-4">
+              {editing ? "Edit Product" : "Add Product"}
+            </h2>
 
             <input
-              value={editing.name}
+              placeholder="Name"
+              value={form.name}
               onChange={(e) =>
-                setEditing({ ...editing, name: e.target.value })
+                setForm({ ...form, name: e.target.value })
               }
-              className="w-full mt-3 bg-white/5 px-3 py-2 rounded"
+              className="w-full mb-3 px-3 py-2 bg-white/5 rounded"
             />
 
             <input
-              value={editing.price}
+              placeholder="Price"
+              value={form.price}
               onChange={(e) =>
-                setEditing({ ...editing, price: e.target.value })
+                setForm({ ...form, price: e.target.value })
               }
-              className="w-full mt-3 bg-white/5 px-3 py-2 rounded"
+              className="w-full mb-3 px-3 py-2 bg-white/5 rounded"
             />
 
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => setEditing(null)}>
+            <input
+              placeholder="Stock"
+              value={form.stock}
+              onChange={(e) =>
+                setForm({ ...form, stock: e.target.value })
+              }
+              className="w-full mb-4 px-3 py-2 bg-white/5 rounded"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-3 py-2 bg-gray-700 rounded"
+              >
                 Cancel
               </button>
 
               <button
-                onClick={handleUpdate}
-                className="bg-red-500 px-4 py-2 rounded"
+                onClick={handleSubmit}
+                className="px-4 py-2 bg-red-500 rounded"
               >
                 Save
               </button>
@@ -169,6 +164,7 @@ export default function Products() {
           </div>
         </div>
       )}
-    </AdminLayout>
+
+    </div>
   );
 }

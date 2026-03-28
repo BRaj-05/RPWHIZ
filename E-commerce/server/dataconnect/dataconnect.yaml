@@ -1,0 +1,13 @@
+specVersion: "v1"
+serviceId: "e-commerce005-service"
+location: "asia-south1"
+schemas:
+  - source: "./schema"
+    datasource:
+      postgresql:
+        database: "fdcdb"
+        cloudSql:
+          instanceId: "e-commerce005-service-fdc"
+          # schemaValidation: "STRICT"     # STRICT mode makes Postgres schema match Data Connect exactly.
+          # schemaValidation: "COMPATIBLE" # COMPATIBLE mode makes Postgres schema compatible with Data Connect.
+connectorDirs: ["./example"]

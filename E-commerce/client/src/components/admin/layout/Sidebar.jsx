@@ -8,26 +8,29 @@ import {
   Settings,
 } from "lucide-react";
 
+
+const BASE = "/control-center-7845";
+
 const sections = [
   {
     title: "CORE",
     items: [
-      { name: "Dashboard", path: "/admin", icon: LayoutDashboard },
+      { name: "Dashboard", path: BASE, icon: LayoutDashboard },
     ],
   },
   {
     title: "MANAGEMENT",
     items: [
-      { name: "Products", path: "/admin/products", icon: ShoppingBag },
-      { name: "Orders", path: "/admin/orders", icon: ShoppingCart },
-      { name: "Customers", path: "/admin/customers", icon: Users },
+      { name: "Products", path: `${BASE}/products`, icon: ShoppingBag },
+      { name: "Orders", path: `${BASE}/orders`, icon: ShoppingCart },
+      { name: "Customers", path: `${BASE}/customers`, icon: Users },
     ],
   },
   {
     title: "INSIGHTS",
     items: [
-      { name: "Analytics", path: "/admin/analytics", icon: BarChart3 },
-      { name: "Settings", path: "/admin/settings", icon: Settings },
+      { name: "Analytics", path: `${BASE}/analytics`, icon: BarChart3 },
+      { name: "Settings", path: `${BASE}/settings`, icon: Settings },
     ],
   },
 ];
@@ -56,9 +59,9 @@ export default function Sidebar() {
                 <NavLink
                   key={item.name}
                   to={item.path}
-                  end={item.path === "/admin"}
+                  end={item.path === BASE}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2 rounded-lg relative transition-all ${
+                    `flex items-center gap-3 px-3 py-2 rounded-lg transition ${
                       isActive
                         ? "bg-red-500/10 text-red-400"
                         : "text-gray-400 hover:bg-white/5 hover:text-white"
@@ -66,17 +69,14 @@ export default function Sidebar() {
                   }
                 >
                   <item.icon size={18} />
-
                   <span className="text-sm">{item.name}</span>
-
-                  {/* Active Indicator */}
-                  <span className="absolute left-0 top-0 h-full w-[3px] bg-red-500 rounded-r"></span>
                 </NavLink>
               ))}
             </div>
           </div>
         ))}
       </div>
+
     </aside>
   );
 }

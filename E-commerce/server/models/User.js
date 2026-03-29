@@ -1,39 +1,79 @@
-import { db, admin } from "../config/firebase.js";
+import mongoose from "mongoose";
 
-/* -------------------------------------------------------
-   USER MODEL (FIRESTORE)
-   -------------------------------------------------------
-   Collection: users/{uid}
--------------------------------------------------------- */
+const userSchema = new mongoose.Schema(
+  {
+    firebaseUid: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true, // ✅ keep this
+    },
 
-const usersRef = db.collection("users");
+    email: {
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
+      index: true, // ✅ keep this
+    },
 
-export const UserModel = {
-  async create(userData) {
-    const { uid, email, role = "customer" } = userData;
+    name: {
+      type: String,
+      trim: true,
+      default: "",
+    },
 
-    const user = {
-      uid,
-      email,
-      role,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    };
+    avatar: {
+      type: String,
+      default: "",
+    },
 
-    await usersRef.doc(uid).set(user);
-    return user;
+    phone: {
+      type: String,
+      default: "",
+    },
+
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+      index: true, // ✅ keep this
+    },
+
+    defaultAddress: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
+      default: null,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true, // ✅ useful
+    },
+
+    wishlistCount: {
+      type: Number,
+      default: 0,
+    },
+
+    lastLogin: {
+      type: Date,
+    },
   },
+  { timestamps: true }
+);
 
-  async findById(uid) {
-    const doc = await usersRef.doc(uid).get();
-    return doc.exists ? doc.data() : null;
-  },
+// ❌ REMOVE THESE (IMPORTANT)
+// userSchema.index({ email: 1 });
+// userSchema.index({ firebaseUid: 1 });
+// userSchema.index({ role: 1 });
 
-  async update(uid, data) {
-    await usersRef.doc(uid).update({
-      ...data,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    return this.findById(uid);
-  },
+// ✅ Clean JSON response
+userSchema.methods.toJSON = function () {
+  const obj = this.toObject();
+  delete obj.__v;
+  return obj;
 };
+
+export default mongoose.model("User", userSchema);

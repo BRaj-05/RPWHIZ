@@ -1,24 +1,36 @@
-import dotenv from "dotenv";
 import app from "./app.js";
-import { db } from "./config/firebase.js";
-
-dotenv.config();
+import { connectDB } from "./config/db.js";
+import { initSocket } from "./sockets/socketManager.js";
+import { createServer } from "http";
+import logger from "./utils/logger.js";
 
 const PORT = process.env.PORT || 5000;
 
-async function startServer() {
-  // simple startup check
-  await db.collection("_health").doc("ping").set({
-    ok: true,
-    at: new Date().toISOString(),
+const httpServer = createServer(app);
+
+// 🔥 Socket init
+initSocket(httpServer);
+
+// 🚀 Start server
+connectDB()
+  .then(() => {
+    httpServer.listen(PORT, () => {
+      logger.info(`🚀 Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    logger.error("DB connection failed", err);
+    process.exit(1);
   });
 
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+// ❌ Unhandled Promise
+process.on("unhandledRejection", (err) => {
+  logger.error("Unhandled Rejection", err);
+  process.exit(1);
+});
 
-startServer().catch((err) => {
-  console.error("Server failed to start:", err);
+// ❌ Uncaught Exception
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught Exception", err);
   process.exit(1);
 });

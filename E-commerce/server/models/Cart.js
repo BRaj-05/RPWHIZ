@@ -1,12 +1,5 @@
 import mongoose from "mongoose";
 
-/* -------------------------------------------------------
-   CART ITEM SUB-SCHEMA
-   -------------------------------------------------------
-   Each cart item stores product data and quantity.
-   We keep some product fields here so cart still works
-   even if product data changes later.
--------------------------------------------------------- */
 const cartItemSchema = new mongoose.Schema(
   {
     product: {
@@ -14,22 +7,30 @@ const cartItemSchema = new mongoose.Schema(
       ref: "Product",
       required: true,
     },
+
     name: {
       type: String,
       required: true,
+      trim: true,
     },
-    brand: {
-      type: String,
-      default: "",
-    },
+
     image: {
       type: String,
       default: "",
     },
+
     price: {
       type: Number,
       required: true,
+      min: 0,
     },
+
+    priceAtAdd: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
     quantity: {
       type: Number,
       required: true,
@@ -40,23 +41,47 @@ const cartItemSchema = new mongoose.Schema(
   { _id: false }
 );
 
-/* -------------------------------------------------------
-   CART SCHEMA
-   -------------------------------------------------------
-   One cart per user.
--------------------------------------------------------- */
 const cartSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      unique: true,
+      unique: true, // one cart per user
     },
-    items: [cartItemSchema],
+
+    items: {
+      type: [cartItemSchema],
+      default: [],
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: { virtuals: true },
+  }
 );
 
-const Cart = mongoose.model("Cart", cartSchema);
-export default Cart;
+
+// 🔥 INDEXES (NO DUPLICATION)
+// cartSchema.index({ user: 1 });
+
+
+// 🔥 VIRTUALS
+cartSchema.virtual("total").get(function () {
+  return this.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+});
+
+cartSchema.virtual("itemCount").get(function () {
+  return this.items.reduce((sum, i) => sum + i.quantity, 0);
+});
+
+
+// 🔥 SAFETY HOOK (OPTIONAL BUT VERY GOOD)
+// Prevent invalid quantities
+cartSchema.pre("save", function (next) {
+  this.items = this.items.filter((item) => item.quantity > 0);
+  next();
+});
+
+
+export const Cart = mongoose.model("Cart", cartSchema);

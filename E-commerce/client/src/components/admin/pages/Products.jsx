@@ -1,12 +1,15 @@
-import { useState } from "react";
+import AdminLayout from "../layout/AdminLayout";
+import { useEffect, useState } from "react";
+import {
+  fetchProducts,
+  addProduct,
+  editProduct,
+  removeProduct,
+} from "../../../services/productService";
 
 export default function Products() {
-  const [products, setProducts] = useState([
-    { id: 1, name: "iPhone 15", price: 80000, stock: 10 },
-    { id: 2, name: "Nike Shoes", price: 5000, stock: 25 },
-  ]);
-
-  const [showModal, setShowModal] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
   const [form, setForm] = useState({
@@ -15,156 +18,158 @@ export default function Products() {
     stock: "",
   });
 
-  // ADD / UPDATE
-  const handleSubmit = () => {
-    if (!form.name || !form.price) return;
-
-    if (editing) {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editing.id ? { ...p, ...form } : p
-        )
-      );
-    } else {
-      setProducts([
-        ...products,
-        { id: Date.now(), ...form },
-      ]);
+  // 🔥 FETCH FROM BACKEND
+  const loadProducts = async () => {
+    try {
+      const res = await fetchProducts();
+      setProducts(res.data.products || res.data);
+    } catch (err) {
+      console.error("Error fetching products", err);
     }
-
-    setForm({ name: "", price: "", stock: "" });
-    setEditing(null);
-    setShowModal(false);
   };
 
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  // ADD / EDIT
+ const handleSubmit = async () => {
+  try {
+    const payload = {
+      name: form.name,
+      price: Number(form.price),   // ✅ FIX
+      stock: Number(form.stock),   // ✅ FIX
+    };
+
+    console.log("Sending:", payload); // DEBUG
+
+    if (editing) {
+      await editProduct(editing._id, payload);
+    } else {
+      await addProduct(payload);
+    }
+
+    alert("Product Saved ✅");
+
+    setModal(false);
+    setEditing(null);
+    setForm({ name: "", price: "", stock: "" });
+
+    loadProducts();
+
+  } catch (err) {
+    console.error("SAVE ERROR:", err.response?.data || err.message);
+    alert("Failed to save ❌");
+  }
+};
+
   // DELETE
-  const handleDelete = (id) => {
-    setProducts(products.filter((p) => p.id !== id));
+  const handleDelete = async (id) => {
+    await removeProduct(id);
+    loadProducts();
   };
 
   // EDIT
-  const handleEdit = (product) => {
-    setEditing(product);
-    setForm(product);
-    setShowModal(true);
+  const handleEdit = (p) => {
+    setEditing(p);
+    setForm(p);
+    setModal(true);
   };
 
-  return (
-    <div className="space-y-6 animate-fadeIn">
+   return (
+  <>
+    <div className="flex justify-between items-center">
+      <h1 className="text-2xl font-semibold">Products</h1>
 
-      {/* HEADER */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Products</h1>
+      <button
+        onClick={() => setModal(true)}
+        className="bg-red-500 px-4 py-2 rounded-lg"
+      >
+        + Add Product
+      </button>
+    </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-red-500 px-4 py-2 rounded-lg hover:bg-red-600"
-        >
-          + Add Product
-        </button>
-      </div>
-
-      {/* TABLE */}
-      <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-
-          <thead className="text-gray-400 border-b border-white/10">
-            <tr>
-              <th className="p-3 text-left">Name</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-b border-white/5 hover:bg-white/5">
-
-                <td className="p-3">{p.name}</td>
-                <td>₹{p.price}</td>
-                <td>{p.stock}</td>
-
-                <td className="space-x-2">
-                  <button
-                    onClick={() => handleEdit(p)}
-                    className="text-blue-400"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    className="text-red-400"
-                  >
-                    Delete
-                  </button>
-                </td>
-
-              </tr>
-            ))}
-          </tbody>
-
-        </table>
-      </div>
-
-      {/* MODAL */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-
-          <div className="bg-[#020617] p-6 rounded-xl w-[350px] border border-white/10">
-
-            <h2 className="text-lg mb-4">
-              {editing ? "Edit Product" : "Add Product"}
-            </h2>
-
-            <input
-              placeholder="Name"
-              value={form.name}
-              onChange={(e) =>
-                setForm({ ...form, name: e.target.value })
-              }
-              className="w-full mb-3 px-3 py-2 bg-white/5 rounded"
-            />
-
-            <input
-              placeholder="Price"
-              value={form.price}
-              onChange={(e) =>
-                setForm({ ...form, price: e.target.value })
-              }
-              className="w-full mb-3 px-3 py-2 bg-white/5 rounded"
-            />
-
-            <input
-              placeholder="Stock"
-              value={form.stock}
-              onChange={(e) =>
-                setForm({ ...form, stock: e.target.value })
-              }
-              className="w-full mb-4 px-3 py-2 bg-white/5 rounded"
-            />
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-3 py-2 bg-gray-700 rounded"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleSubmit}
-                className="px-4 py-2 bg-red-500 rounded"
-              >
-                Save
-              </button>
+    {/* TABLE */}
+    <div className="mt-6 bg-white/5 p-5 rounded-xl">
+      {products.length === 0 ? (
+        <p className="text-gray-500">No products yet</p>
+      ) : (
+        products.map((p) => (
+          <div
+            key={p._id}
+            className="flex justify-between border-b py-3"
+          >
+            <div>
+              <p className="font-medium">{p.name}</p>
+              <p className="text-sm text-gray-400">
+                ₹{p.price} • Stock: {p.stock}
+              </p>
             </div>
 
-          </div>
-        </div>
-      )}
+            <div className="space-x-3">
+              <button
+                onClick={() => handleEdit(p)}
+                className="text-blue-400"
+              >
+                Edit
+              </button>
 
+              <button
+                onClick={() => handleDelete(p._id)}
+                className="text-red-400"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))
+      )}
     </div>
-  );
+
+    {/* MODAL */}
+    {modal && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+        <div className="bg-[#020617] p-6 rounded-xl w-[350px]">
+          <h2 className="mb-4 text-lg font-semibold">
+            {editing ? "Edit Product" : "Add Product"}
+          </h2>
+
+          <input
+            placeholder="Name"
+            value={form.name}
+            onChange={(e) =>
+              setForm({ ...form, name: e.target.value })
+            }
+            className="w-full mb-3 px-3 py-2 bg-white/5 rounded"
+          />
+
+          <input
+            placeholder="Price"
+            value={form.price}
+            onChange={(e) =>
+              setForm({ ...form, price: e.target.value })
+            }
+            className="w-full mb-3 px-3 py-2 bg-white/5 rounded"
+          />
+
+          <input
+            placeholder="Stock"
+            value={form.stock}
+            onChange={(e) =>
+              setForm({ ...form, stock: e.target.value })
+            }
+            className="w-full mb-4 px-3 py-2 bg-white/5 rounded"
+          />
+
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-red-500 py-2 rounded"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    )}
+  </>
+);
 }

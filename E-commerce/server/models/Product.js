@@ -1,48 +1,134 @@
-import { db, admin } from "../config/firebase.js";
+import mongoose from "mongoose";
+import slugify from "slugify";
 
-/* -------------------------------------------------------
-   PRODUCT MODEL
-   -------------------------------------------------------
-   Collection: products/{productId}
--------------------------------------------------------- */
+const productSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
 
-const productsRef = db.collection("products");
+    slug: {
+      type: String,
+      unique: true,
+    },
 
-export const ProductModel = {
-  async create(productData) {
-    const docRef = await productsRef.add({
-      ...productData,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+    },
 
-    return { id: docRef.id, ...productData };
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+
+    costPrice: {
+      type: Number,
+      select: false, // hidden from queries
+      min: 0,
+    },
+
+    stock: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    images: {
+      type: [String],
+      default: [],
+    },
+
+    thumbnail: {
+      type: String,
+      default: "",
+    },
+
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      index: true,
+    },
+
+    brand: {
+      type: String,
+      trim: true,
+    },
+
+    rating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+
+    numReviews: {
+      type: Number,
+      default: 0,
+    },
+
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
   },
+  { timestamps: true }
+);
 
-  async findAll() {
-    const snapshot = await productsRef.get();
 
-    return snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-  },
+// 🔥 SAFE UNIQUE SLUG GENERATION (VERY IMPORTANT)
+productSchema.pre("save", async function (next) {
+  if (this.isModified("name")) {
+    let baseSlug = slugify(this.name, { lower: true, strict: true });
+    let slug = baseSlug;
+    let count = 1;
 
-  async findById(id) {
-    const doc = await productsRef.doc(id).get();
-    return doc.exists ? { id: doc.id, ...doc.data() } : null;
-  },
+    while (await mongoose.models.Product.findOne({ slug })) {
+      slug = `${baseSlug}-${count++}`;
+    }
 
-  async update(id, data) {
-    await productsRef.doc(id).update({
-      ...data,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    });
+    this.slug = slug;
+  }
+  next();
+});
 
-    return this.findById(id);
-  },
 
-  async delete(id) {
-    await productsRef.doc(id).delete();
-    return true;
-  },
-};
+// 🔥 INDEXES (NO DUPLICATION)
+
+// slug lookup
+// productSchema.index({ slug: 1 });
+
+// filtering
+productSchema.index({ isActive: 1, isDeleted: 1 });
+productSchema.index({ isFeatured: 1 });
+
+// category filtering
+// productSchema.index({ category: 1 });
+
+// price sorting/filter
+productSchema.index({ price: 1 });
+
+// 🔍 text search
+productSchema.index({ name: "text", description: "text" });
+
+
+export default mongoose.model("Product", productSchema);

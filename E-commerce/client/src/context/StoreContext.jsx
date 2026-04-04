@@ -1,19 +1,33 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import {
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
+import { auth, googleProvider } from "../config/firebase";
+import API from "../services/api";
 
 export const StoreContext = createContext();
 
-/* -------------------------------------------------------
-   LOCAL STORAGE HELPERS
--------------------------------------------------------- */
-const getStoredUsers = () => {
-  const raw = localStorage.getItem("shopora-users");
-  return raw ? JSON.parse(raw) : [];
-};
-
-const getStoredUser = () => {
-  const raw = localStorage.getItem("shopora-current-user");
-  return raw ? JSON.parse(raw) : null;
-};
+function getAuthError(code) {
+  switch (code) {
+    case "auth/user-not-found":
+    case "auth/wrong-password":
+    case "auth/invalid-credential":
+      return "Invalid email or password";
+    case "auth/email-already-in-use":
+      return "Email already registered";
+    case "auth/weak-password":
+      return "Password must be at least 6 characters";
+    case "auth/invalid-email":
+      return "Invalid email address";
+    default:
+      return "Authentication failed. Please try again.";
+  }
+}
 
 export const StoreProvider = ({ children }) => {
 
@@ -33,8 +47,8 @@ export const StoreProvider = ({ children }) => {
   const [sortOption, setSortOption] = useState("default");
 
   // ================= AUTH =================
-  const [user, setUser] = useState(() => getStoredUser());
-  const [storedUsers, setStoredUsers] = useState(() => getStoredUsers());
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // ================= THEME =================
   const [theme, setTheme] = useState(() => {
@@ -51,57 +65,68 @@ export const StoreProvider = ({ children }) => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
-  /* ---------------- AUTH STORAGE ---------------- */
+  /* ---------------- FIREBASE AUTH LISTENER ---------------- */
   useEffect(() => {
-    localStorage.setItem("shopora-current-user", JSON.stringify(user));
-  }, [user]);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          // Sync with backend — creates MongoDB user on first login
+          const { data } = await API.post("/auth/login");
+          setUser(data.data.user);
+        } catch {
+          // Fallback: use Firebase user info directly
+          setUser({
+            email: firebaseUser.email,
+            name: firebaseUser.displayName || firebaseUser.email?.split("@")[0],
+            avatar: firebaseUser.photoURL || "",
+            role: "customer",
+          });
+        }
+      } else {
+        setUser(null);
+      }
+      setAuthLoading(false);
+    });
 
-  useEffect(() => {
-    localStorage.setItem("shopora-users", JSON.stringify(storedUsers));
-  }, [storedUsers]);
+    return unsubscribe;
+  }, []);
 
   /* ---------------- LOGIN ---------------- */
-  const login = (email, password) => {
-    if (!email || !password) {
-      return { success: false, message: "Enter email & password" };
-    }
-
-    if (email === "admin@shopora.com" && password === "admin123") {
-      setUser({ email, role: "admin" });
+  const login = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       return { success: true };
+    } catch (err) {
+      return { success: false, message: getAuthError(err.code) };
     }
-
-    const found = storedUsers.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (!found) {
-      return { success: false, message: "Invalid credentials" };
-    }
-
-    setUser({ email, role: "customer" });
-    return { success: true };
   };
 
   /* ---------------- SIGNUP ---------------- */
-  const signup = (email, password) => {
-    if (!email || !password) {
-      return { success: false, message: "Fill all fields" };
+  const signup = async (email, password) => {
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(cred.user, {
+        displayName: email.split("@")[0],
+      });
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: getAuthError(err.code) };
     }
-
-    const exists = storedUsers.find((u) => u.email === email);
-    if (exists) {
-      return { success: false, message: "User already exists" };
-    }
-
-    const newUser = { email, password };
-    setStoredUsers((prev) => [...prev, newUser]);
-    setUser({ email, role: "customer" });
-
-    return { success: true };
   };
 
-  const logout = () => {
+  /* ---------------- GOOGLE LOGIN ---------------- */
+  const loginWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
+  };
+
+  /* ---------------- LOGOUT ---------------- */
+  const logout = async () => {
+    await signOut(auth);
     setUser(null);
   };
 
@@ -193,8 +218,10 @@ export const StoreProvider = ({ children }) => {
         sortOption,
         setSortOption,
         user,
+        authLoading,
         login,
         signup,
+        loginWithGoogle,
         logout,
         theme,
         toggleTheme,

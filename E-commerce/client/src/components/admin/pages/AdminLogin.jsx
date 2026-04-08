@@ -13,10 +13,13 @@ export default function AdminLogin() {
   const navigate = useNavigate();
 
   // Already logged in → redirect
-  useEffect(() => {
-    const admin = localStorage.getItem("admin_auth");
-    if (admin) navigate("/control-center-7845");
-  }, []);
+//  useEffect(() => {
+//   const admin = localStorage.getItem("admin_auth");
+
+//   if (admin && window.location.pathname.includes("login")) {
+//     navigate("/control-center-7845");
+//   }
+// }, []);
 
   const handleLogin = async () => {
     setError("");
@@ -27,7 +30,14 @@ export default function AdminLogin() {
       await signInWithEmailAndPassword(auth, email, password);
 
       // 2. Exchange Firebase token for MongoDB user (token is attached by api.js interceptor)
-      const { data } = await API.post("/auth/login");
+      const user = auth.currentUser;
+const token = await user.getIdToken(true); // 🔥 force fresh token
+
+const { data } = await API.post("/auth/login", {}, {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+});
       const mongoUser = data?.data?.user;
 
       if (!mongoUser || mongoUser.role !== "admin") {
@@ -44,19 +54,27 @@ export default function AdminLogin() {
       );
 
       navigate("/control-center-7845");
-    } catch (err) {
-      const code = err.code;
-      if (
-        code === "auth/wrong-password" ||
-        code === "auth/user-not-found" ||
-        code === "auth/invalid-credential"
-      ) {
-        setError("Invalid email or password ❌");
-      } else if (code === "auth/invalid-email") {
-        setError("Invalid email address ❌");
-      } else {
-        setError("Login failed. Please try again ❌");
-      }
+    }catch (err) {
+  console.log("🔥 FULL ERROR:", err);
+
+  const message = err?.message || err?.code;
+
+  setError(message || "Login failed ❌");
+
+    // } catch (err) {
+    //   const code = err.code;
+    //   if (
+    //     code === "auth/wrong-password" ||
+    //     code === "auth/user-not-found" ||
+    //     code === "auth/invalid-credential"
+    //   ) {
+    //     setError("Invalid email or password ❌");
+    //   } else if (code === "auth/invalid-email") {
+    //     setError("Invalid email address ❌");
+    //   } else {
+    //     setError("Login failed. Please try again ❌");
+    //   }
+    
     } finally {
       setLoading(false);
     }

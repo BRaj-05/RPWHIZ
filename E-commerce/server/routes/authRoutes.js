@@ -10,7 +10,7 @@ import { protect, adminOnly } from "../middleware/authMiddleware.js";
 const router = express.Router();
 
 // Firebase token → MongoDB user
-router.post("/login", protect, loginOrRegister);
+router.post("/login", loginOrRegister);
 
 router.get("/me", protect, getMe);
 

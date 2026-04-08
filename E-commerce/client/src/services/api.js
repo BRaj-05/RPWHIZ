@@ -6,13 +6,19 @@ const API = axios.create({
   withCredentials: true,
 });
 
-// Attach Firebase ID token on every request if user is signed in
+// ✅ SAFE INTERCEPTOR (NO LOOP)
 API.interceptors.request.use(async (config) => {
   const user = auth.currentUser;
+
   if (user) {
-    const token = await user.getIdToken();
-    config.headers.Authorization = `Bearer ${token}`;
+    // 🔥 IMPORTANT: DON'T FORCE REFRESH
+    const token = await user.getIdToken(false); // ✅ FIX
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
+
   return config;
 });
 

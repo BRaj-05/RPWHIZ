@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 import { auth, googleProvider } from "../config/firebase";
 import API from "../services/api";
+import { useRef } from "react"; // add at top
 
 export const StoreContext = createContext();
 
@@ -66,31 +67,38 @@ export const StoreProvider = ({ children }) => {
   };
 
   /* ---------------- FIREBASE AUTH LISTENER ---------------- */
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          // Sync with backend — creates MongoDB user on first login
-          const { data } = await API.post("/auth/login");
-          setUser(data.data.user);
-        } catch {
-          // Fallback: use Firebase user info directly
-          setUser({
-            email: firebaseUser.email,
-            name: firebaseUser.displayName || firebaseUser.email?.split("@")[0],
-            avatar: firebaseUser.photoURL || "",
-            role: "customer",
-          });
-        }
-      } else {
-        setUser(null);
-      }
+// let isSynced = false;
+
+const isSyncedRef = useRef(false);
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+
+    if (!firebaseUser) {
+      setUser(null);
       setAuthLoading(false);
-    });
+      isSyncedRef.current = false;
+      return;
+    }
 
-    return unsubscribe;
-  }, []);
+    // ✅ ONLY CALL BACKEND ONCE
+    if (!isSyncedRef.current) {
+      isSyncedRef.current = true;
 
+      try {
+        const { data } = await API.post("/auth/login");
+
+        setUser(data.data.user); // ✅ ONLY ONE setUser
+      } catch (err) {
+        console.log("Backend sync failed");
+      }
+    }
+
+    setAuthLoading(false);
+  });
+
+  return unsubscribe;
+}, []);
   /* ---------------- LOGIN ---------------- */
   const login = async (email, password) => {
     try {

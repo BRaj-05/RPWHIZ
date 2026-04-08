@@ -9,11 +9,11 @@ import Customers from "./pages/Customers";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 
-import { AdminStoreProvider } from "./context/StoreContext";
+// import { AdminStoreProvider } from "./context/StoreContext";
 
 export default function AdminRoutes() {
   return (
-    <AdminStoreProvider>
+    // <AdminStoreProvider>
       <Routes>
 
         {/* ✅ IMPORTANT: nested layout */}
@@ -31,6 +31,6 @@ export default function AdminRoutes() {
         </Route>
 
       </Routes>
-    </AdminStoreProvider>
+    // </AdminStoreProvider>
   );
 }
